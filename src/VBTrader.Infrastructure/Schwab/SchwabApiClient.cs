@@ -54,7 +54,7 @@ public class SchwabApiClient : ISchwabApiClient, IDisposable
         _callbackUrl = callbackUrl;
 
         // Check if we already have valid tokens
-        if (await _tokenManager.EnsureValidAccessTokenAsync())
+        if (await _tokenManager.EnsureValidAccessTokenAsync(appKey, appSecret))
         {
             UpdateHttpClientAuth();
             _logger.LogInformation("Already authenticated with valid tokens");
@@ -66,17 +66,19 @@ public class SchwabApiClient : ISchwabApiClient, IDisposable
 
         try
         {
+            // Create a cancellation token with extended timeout (5 minutes + 20 seconds for user login)
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(320));
             var authorizationCode = await _callbackServer.StartAndWaitForAuthorizationCodeAsync(
-                callbackUrl, appKey, CancellationToken.None);
+                callbackUrl, appKey, timeoutCts.Token);
 
             if (string.IsNullOrEmpty(authorizationCode))
             {
                 _logger.LogError("Failed to obtain authorization code");
-                Console.WriteLine("❌ Failed to get authorization code from callback");
+                _logger.LogError("❌ Failed to get authorization code from callback");
                 return false;
             }
 
-            Console.WriteLine($"⚙️ Exchanging authorization code for access tokens...");
+            _logger.LogInformation("⚙️ Exchanging authorization code for access tokens...");
             var success = await _tokenManager.GetTokensFromAuthorizationCodeAsync(
                 appKey, appSecret, callbackUrl, authorizationCode);
 
@@ -84,12 +86,12 @@ public class SchwabApiClient : ISchwabApiClient, IDisposable
             {
                 UpdateHttpClientAuth();
                 _logger.LogInformation("Authentication completed successfully");
-                Console.WriteLine($"✅ Schwab API authentication successful!");
-                Console.WriteLine($"✅ Ready to access market data and account information");
+                _logger.LogInformation("✅ Schwab API authentication successful!");
+                _logger.LogInformation("✅ Ready to access market data and account information");
             }
             else
             {
-                Console.WriteLine($"❌ Token exchange failed - check credentials and try again");
+                _logger.LogError("❌ Token exchange failed - check credentials and try again");
             }
 
             return success;
@@ -103,7 +105,7 @@ public class SchwabApiClient : ISchwabApiClient, IDisposable
 
     public async Task<bool> RefreshTokenAsync()
     {
-        var success = await _tokenManager.RefreshAccessTokenAsync();
+        var success = await _tokenManager.RefreshAccessTokenAsync(_appKey, _appSecret);
         if (success)
         {
             UpdateHttpClientAuth();
@@ -166,7 +168,7 @@ public class SchwabApiClient : ISchwabApiClient, IDisposable
 
     private async Task EnsureAuthenticatedAsync()
     {
-        if (!await _tokenManager.EnsureValidAccessTokenAsync())
+        if (!await _tokenManager.EnsureValidAccessTokenAsync(_appKey, _appSecret))
         {
             throw new UnauthorizedAccessException("Authentication required. Please call AuthenticateAsync first.");
         }

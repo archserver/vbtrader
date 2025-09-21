@@ -88,8 +88,8 @@ public class SchwabCallbackServer : IDisposable
                 }
             }, cancellationToken);
 
-            // Wait for the authorization code with timeout
-            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+            // Wait for the authorization code with timeout (5 minutes + 10 seconds)
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(310));
             using var combinedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
             try
@@ -145,8 +145,8 @@ public class SchwabCallbackServer : IDisposable
                         var rawCode = fullUrl[codeStart..codeEnd] + "@";
                         // URL decode the authorization code as required by Schwab documentation
                         code = Uri.UnescapeDataString(rawCode);
-                        Console.WriteLine($"🔍 Raw code (from %40): {rawCode}");
-                        Console.WriteLine($"🔍 Decoded code: {code}");
+                        _logger.LogDebug("🔍 Raw code (from %40): {RawCode}", rawCode);
+                        _logger.LogDebug("🔍 Decoded code: {Code}", code);
                     }
                     else
                     {
@@ -156,8 +156,8 @@ public class SchwabCallbackServer : IDisposable
                         {
                             var rawCode = fullUrl[codeStart..(codeEnd + 1)]; // Include the @
                             code = rawCode; // No decoding needed
-                            Console.WriteLine($"🔍 Raw code (with @): {rawCode}");
-                            Console.WriteLine($"🔍 Final code: {code}");
+                            _logger.LogDebug("🔍 Raw code (with @): {RawCode}", rawCode);
+                            _logger.LogDebug("🔍 Final code: {Code}", code);
                         }
                         else
                         {
@@ -167,8 +167,8 @@ public class SchwabCallbackServer : IDisposable
 
                             var rawCode = fullUrl[codeStart..codeEnd];
                             code = rawCode.EndsWith("@") ? rawCode : rawCode + "@";
-                            Console.WriteLine($"🔍 Raw code (fallback): {rawCode}");
-                            Console.WriteLine($"🔍 Final code: {code}");
+                            _logger.LogDebug("🔍 Raw code (fallback): {RawCode}", rawCode);
+                            _logger.LogDebug("🔍 Final code: {Code}", code);
                         }
                     }
                 }
@@ -177,7 +177,7 @@ public class SchwabCallbackServer : IDisposable
                 if (!string.IsNullOrEmpty(error))
                 {
                     _logger.LogError("Authorization error received: {Error}", error);
-                    Console.WriteLine($"❌ Authorization failed: {error}");
+                    _logger.LogError("❌ Authorization failed: {Error}", error);
 
                     // Send error response to browser
                     var errorResponse = $"<html><body><h2>Authorization Error</h2><p>{error}</p><p>You may close this window.</p></body></html>";
@@ -190,7 +190,7 @@ public class SchwabCallbackServer : IDisposable
                 if (!string.IsNullOrEmpty(code))
                 {
                     _logger.LogInformation("Authorization code received successfully");
-                    Console.WriteLine($"✅ Authorization successful! Exchanging code for tokens...");
+                    _logger.LogInformation("✅ Authorization successful! Exchanging code for tokens...");
 
                     // Send success response to browser
                     var successResponse = "<html><body><h2>Authorization Successful</h2><p>You may now close this window and return to the VBTrader application.</p></body></html>";

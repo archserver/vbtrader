@@ -167,8 +167,8 @@ public class SandboxDataService : ISandboxDataService
         {
             return new DateRange
             {
-                StartDate = DateTime.Today.AddDays(-30),
-                EndDate = DateTime.Today,
+                StartDate = DateTime.UtcNow.Date.AddDays(-30),
+                EndDate = DateTime.UtcNow.Date,
                 TotalDays = 30,
                 TradingDays = 22
             };

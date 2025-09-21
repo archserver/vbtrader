@@ -676,13 +676,13 @@ public class VBTraderDbContext : DbContext
         if (!optionsBuilder.IsConfigured)
         {
             // Default connection string - should be overridden by dependency injection
-            optionsBuilder.UseNpgsql("Host=localhost;Database=vbtrader;Username=postgres;Password=your_password");
+            optionsBuilder.UseNpgsql("Host=localhost;Database=vbtrader;Username=postgres;Password=your_password;Timezone=UTC");
         }
 
         // Enable sensitive data logging in development
 #if DEBUG
-        optionsBuilder.EnableSensitiveDataLogging();
-        optionsBuilder.LogTo(Console.WriteLine);
+        // optionsBuilder.EnableSensitiveDataLogging();
+        // optionsBuilder.LogTo(Console.WriteLine);  // Commented out - use Serilog instead
 #endif
     }
 }

@@ -107,9 +107,7 @@ public class SchwabTokenManager
     {
         try
         {
-            Console.WriteLine($"🔄 Token Exchange Request:");
-            Console.WriteLine($"   Code: {authorizationCode}");
-            Console.WriteLine($"   Callback URL: {callbackUrl}");
+            _logger.LogInformation("🔄 Token Exchange Request: Code: {Code}, Callback URL: {CallbackUrl}", authorizationCode, callbackUrl);
 
             // Create headers exactly like Python code
             var authString = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{appKey}:{appSecret}"));
@@ -128,13 +126,13 @@ public class SchwabTokenManager
             request.Content = new FormUrlEncodedContent(formData);
             request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
 
-            Console.WriteLine($"🚀 Sending token request to Schwab...");
+            _logger.LogInformation("🚀 Sending token request to Schwab...");
 
             var response = await _httpClient.SendAsync(request);
             var responseContent = await response.Content.ReadAsStringAsync();
 
-            Console.WriteLine($"📡 Response Status: {response.StatusCode}");
-            Console.WriteLine($"📄 Response Content: {responseContent}");
+            _logger.LogInformation("📡 Response Status: {StatusCode}", response.StatusCode);
+            _logger.LogDebug("📄 Response Content: {ResponseContent}", responseContent);
 
             if (response.IsSuccessStatusCode)
             {
@@ -148,8 +146,8 @@ public class SchwabTokenManager
                     var accessToken = accessTokenElement.GetString();
                     var refreshToken = refreshTokenElement.GetString();
 
-                    Console.WriteLine($"✅ Access Token received: {accessToken?[..20]}...");
-                    Console.WriteLine($"✅ Refresh Token received: {refreshToken?[..20]}...");
+                    _logger.LogInformation("✅ Access Token received: {AccessTokenPrefix}...", accessToken?[..20]);
+                    _logger.LogInformation("✅ Refresh Token received: {RefreshTokenPrefix}...", refreshToken?[..20]);
 
                     var now = DateTime.UtcNow;
                     var tokenResponse = new TokenResponse
@@ -163,7 +161,7 @@ public class SchwabTokenManager
 
                     SetTokens(now, now, tokenResponse);
                     _logger.LogInformation("Successfully obtained tokens from authorization code");
-                    Console.WriteLine($"🎉 Token exchange successful!");
+                    _logger.LogInformation("🎉 Token exchange successful!");
                     return true;
                 }
             }
@@ -171,8 +169,7 @@ public class SchwabTokenManager
             {
                 _logger.LogError("Failed to get tokens from authorization code. Status: {StatusCode}, Content: {Content}",
                     response.StatusCode, responseContent);
-                Console.WriteLine($"❌ Token exchange failed: {response.StatusCode}");
-                Console.WriteLine($"❌ Error details: {responseContent}");
+                // Error already logged above with LogError
             }
         }
         catch (Exception ex)
@@ -183,7 +180,7 @@ public class SchwabTokenManager
         return false;
     }
 
-    public async Task<bool> RefreshAccessTokenAsync()
+    public async Task<bool> RefreshAccessTokenAsync(string appKey, string appSecret)
     {
         if (string.IsNullOrEmpty(RefreshToken))
         {
@@ -191,14 +188,27 @@ public class SchwabTokenManager
             return false;
         }
 
+        if (string.IsNullOrEmpty(appKey) || string.IsNullOrEmpty(appSecret))
+        {
+            _logger.LogWarning("Cannot refresh access token: app credentials are required");
+            return false;
+        }
+
         try
         {
+            // Add authorization header like the initial token exchange
+            var authString = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{appKey}:{appSecret}"));
+
             var request = new HttpRequestMessage(HttpMethod.Post, "https://api.schwabapi.com/v1/oauth/token");
+            request.Headers.Add("Authorization", $"Basic {authString}");
+
             request.Content = new FormUrlEncodedContent(new[]
             {
                 new KeyValuePair<string, string>("grant_type", "refresh_token"),
                 new KeyValuePair<string, string>("refresh_token", RefreshToken)
             });
+
+            request.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
 
             var response = await _httpClient.SendAsync(request);
 
@@ -241,14 +251,14 @@ public class SchwabTokenManager
         SaveTokensToFile();
     }
 
-    public async Task<bool> EnsureValidAccessTokenAsync()
+    public async Task<bool> EnsureValidAccessTokenAsync(string appKey, string appSecret)
     {
         if (IsAccessTokenValid)
             return true;
 
         if (IsRefreshTokenValid)
         {
-            return await RefreshAccessTokenAsync();
+            return await RefreshAccessTokenAsync(appKey, appSecret);
         }
 
         _logger.LogWarning("Both access and refresh tokens are invalid. Re-authentication required.");
