@@ -1,0 +1,325 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using VBTrader.Core.Models;
+using VBTrader.UI.Services;
+using VBTrader.Services;
+using System.Collections.ObjectModel;
+
+namespace VBTrader.UI.ViewModels;
+
+public partial class MainViewModel : ObservableObject
+{
+    private readonly INavigationService _navigationService;
+    private readonly IDialogService _dialogService;
+    private readonly IHotkeyService _hotkeyService;
+    private readonly MarketDataCollectionService _marketDataService;
+
+    [ObservableProperty]
+    private bool _isConnected = false;
+
+    [ObservableProperty]
+    private bool _isMarketHours = false;
+
+    [ObservableProperty]
+    private bool _isPreMarket = false;
+
+    [ObservableProperty]
+    private string _connectionStatus = "Disconnected";
+
+    [ObservableProperty]
+    private string _marketStatus = "Market Closed";
+
+    [ObservableProperty]
+    private int _totalSymbolsWatched = 0;
+
+    [ObservableProperty]
+    private int _totalOpportunities = 0;
+
+    [ObservableProperty]
+    private DateTime _lastUpdate = DateTime.Now;
+
+    // Active trading stocks (top 3)
+    [ObservableProperty]
+    private StockQuote? _activeStock1;
+
+    [ObservableProperty]
+    private StockQuote? _activeStock2;
+
+    [ObservableProperty]
+    private StockQuote? _activeStock3;
+
+    // Collections for data grids
+    public ObservableCollection<StockQuote> TopMovers { get; } = new();
+    public ObservableCollection<StockQuote> WatchList { get; } = new();
+    public ObservableCollection<MarketOpportunity> Opportunities { get; } = new();
+
+    public MainViewModel(
+        INavigationService navigationService,
+        IDialogService dialogService,
+        IHotkeyService hotkeyService,
+        MarketDataCollectionService marketDataService)
+    {
+        _navigationService = navigationService;
+        _dialogService = dialogService;
+        _hotkeyService = hotkeyService;
+        _marketDataService = marketDataService;
+
+        // Subscribe to real-time data streams
+        SubscribeToDataStreams();
+
+        // Subscribe to hotkey events
+        _hotkeyService.HotkeyPressed += OnHotkeyPressed;
+
+        // Initialize status
+        UpdateMarketStatus();
+    }
+
+    private void SubscribeToDataStreams()
+    {
+        // Subscribe to quote stream
+        _marketDataService.QuoteStream.Subscribe(quote =>
+        {
+            // Update UI on main thread
+            App.Current.DispatcherQueue.TryEnqueue(() =>
+            {
+                UpdateQuote(quote);
+                UpdateActiveStocks();
+                LastUpdate = DateTime.Now;
+            });
+        });
+
+        // Subscribe to opportunity stream
+        _marketDataService.OpportunityStream.Subscribe(opportunity =>
+        {
+            App.Current.DispatcherQueue.TryEnqueue(() =>
+            {
+                AddOpportunity(opportunity);
+            });
+        });
+    }
+
+    private void UpdateQuote(StockQuote quote)
+    {
+        // Update in top movers if present
+        var existingMover = TopMovers.FirstOrDefault(q => q.Symbol == quote.Symbol);
+        if (existingMover != null)
+        {
+            var index = TopMovers.IndexOf(existingMover);
+            TopMovers[index] = quote;
+        }
+
+        // Update in watch list if present
+        var existingWatch = WatchList.FirstOrDefault(q => q.Symbol == quote.Symbol);
+        if (existingWatch != null)
+        {
+            var index = WatchList.IndexOf(existingWatch);
+            WatchList[index] = quote;
+        }
+
+        // Update active stocks
+        if (ActiveStock1?.Symbol == quote.Symbol)
+            ActiveStock1 = quote;
+        if (ActiveStock2?.Symbol == quote.Symbol)
+            ActiveStock2 = quote;
+        if (ActiveStock3?.Symbol == quote.Symbol)
+            ActiveStock3 = quote;
+    }
+
+    private void UpdateActiveStocks()
+    {
+        var activeSymbols = _marketDataService.GetActiveSymbols().Take(3).ToList();
+
+        if (activeSymbols.Count > 0 && (ActiveStock1?.Symbol != activeSymbols[0]))
+            ActiveStock1 = TopMovers.FirstOrDefault(q => q.Symbol == activeSymbols[0]);
+
+        if (activeSymbols.Count > 1 && (ActiveStock2?.Symbol != activeSymbols[1]))
+            ActiveStock2 = TopMovers.FirstOrDefault(q => q.Symbol == activeSymbols[1]);
+
+        if (activeSymbols.Count > 2 && (ActiveStock3?.Symbol != activeSymbols[2]))
+            ActiveStock3 = TopMovers.FirstOrDefault(q => q.Symbol == activeSymbols[2]);
+    }
+
+    private void AddOpportunity(MarketOpportunity opportunity)
+    {
+        // Add to beginning of list and limit to 100 items
+        Opportunities.Insert(0, opportunity);
+        while (Opportunities.Count > 100)
+            Opportunities.RemoveAt(Opportunities.Count - 1);
+
+        TotalOpportunities = Opportunities.Count;
+    }
+
+    private void UpdateMarketStatus()
+    {
+        var now = DateTime.Now;
+        var easternTime = TimeZoneInfo.ConvertTime(now, TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time"));
+
+        IsMarketHours = IsMarketOpen(easternTime);
+        IsPreMarket = IsPreMarketOpen(easternTime);
+
+        MarketStatus = IsMarketHours ? "Market Open" :
+                      IsPreMarket ? "Pre-Market" : "Market Closed";
+
+        ConnectionStatus = IsConnected ? "Connected" : "Disconnected";
+    }
+
+    private bool IsMarketOpen(DateTime easternTime)
+    {
+        if (easternTime.DayOfWeek == DayOfWeek.Saturday || easternTime.DayOfWeek == DayOfWeek.Sunday)
+            return false;
+
+        var marketOpen = new TimeSpan(9, 30, 0);
+        var marketClose = new TimeSpan(16, 0, 0);
+
+        return easternTime.TimeOfDay >= marketOpen && easternTime.TimeOfDay <= marketClose;
+    }
+
+    private bool IsPreMarketOpen(DateTime easternTime)
+    {
+        if (easternTime.DayOfWeek == DayOfWeek.Saturday || easternTime.DayOfWeek == DayOfWeek.Sunday)
+            return false;
+
+        var preMarketStart = new TimeSpan(4, 0, 0);
+        var marketOpen = new TimeSpan(9, 30, 0);
+
+        return easternTime.TimeOfDay >= preMarketStart && easternTime.TimeOfDay < marketOpen;
+    }
+
+    private async void OnHotkeyPressed(object? sender, HotkeyEventArgs e)
+    {
+        try
+        {
+            var stock = e.StockIndex switch
+            {
+                1 => ActiveStock1,
+                2 => ActiveStock2,
+                3 => ActiveStock3,
+                _ => null
+            };
+
+            if (stock == null)
+            {
+                await _dialogService.ShowErrorAsync("No Active Stock", $"No stock is assigned to position {e.StockIndex}");
+                return;
+            }
+
+            var actionText = e.Action == TradingAction.Buy ? "BUY" : "SELL";
+            var quantityText = e.IsMaxPosition ? "ALL" : e.Quantity.ToString();
+
+            var message = $"{actionText} {quantityText} shares of {stock.Symbol} at ${stock.LastPrice:F2}?";
+            var result = await _dialogService.ShowConfirmationAsync($"Confirm {actionText} Order", message);
+
+            if (result == Microsoft.UI.Xaml.Controls.ContentDialogResult.Primary)
+            {
+                // TODO: Execute trade through Schwab API
+                await _dialogService.ShowMessageAsync("Order Submitted", $"{actionText} order for {stock.Symbol} has been submitted.");
+            }
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync("Trading Error", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ConnectAsync()
+    {
+        try
+        {
+            ConnectionStatus = "Connecting...";
+
+            // TODO: Connect to Schwab API
+            await Task.Delay(2000); // Simulate connection
+
+            IsConnected = true;
+            ConnectionStatus = "Connected";
+            TotalSymbolsWatched = _marketDataService.GetWatchedSymbols().Count();
+
+            await LoadInitialDataAsync();
+        }
+        catch (Exception ex)
+        {
+            IsConnected = false;
+            ConnectionStatus = "Connection Failed";
+            await _dialogService.ShowErrorAsync("Connection Error", ex.Message);
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectAsync()
+    {
+        IsConnected = false;
+        ConnectionStatus = "Disconnected";
+        TopMovers.Clear();
+        WatchList.Clear();
+        Opportunities.Clear();
+        ActiveStock1 = null;
+        ActiveStock2 = null;
+        ActiveStock3 = null;
+    }
+
+    [RelayCommand]
+    private void OpenSettings()
+    {
+        _navigationService.NavigateToSettings();
+    }
+
+    [RelayCommand]
+    private async Task RefreshDataAsync()
+    {
+        if (!IsConnected) return;
+
+        try
+        {
+            await LoadInitialDataAsync();
+        }
+        catch (Exception ex)
+        {
+            await _dialogService.ShowErrorAsync("Refresh Error", ex.Message);
+        }
+    }
+
+    private async Task LoadInitialDataAsync()
+    {
+        // Load top movers
+        // TODO: Load from data service
+        // For now, simulate with sample data
+        await LoadSampleDataAsync();
+    }
+
+    private async Task LoadSampleDataAsync()
+    {
+        // Sample data for demonstration
+        TopMovers.Clear();
+        WatchList.Clear();
+
+        var sampleStocks = new[]
+        {
+            new StockQuote { Symbol = "AAPL", LastPrice = 175.25m, Change = 2.15m, ChangePercent = 1.24m, Volume = 45234567 },
+            new StockQuote { Symbol = "NVDA", LastPrice = 892.50m, Change = 25.30m, ChangePercent = 2.92m, Volume = 78901234 },
+            new StockQuote { Symbol = "TSLA", LastPrice = 248.75m, Change = -3.45m, ChangePercent = -1.37m, Volume = 56789012 },
+            new StockQuote { Symbol = "MSFT", LastPrice = 420.80m, Change = 5.60m, ChangePercent = 1.35m, Volume = 34567890 },
+            new StockQuote { Symbol = "GOOGL", LastPrice = 2785.90m, Change = -15.20m, ChangePercent = -0.54m, Volume = 23456789 },
+        };
+
+        foreach (var stock in sampleStocks)
+        {
+            stock.LastUpdated = DateTime.UtcNow;
+            TopMovers.Add(stock);
+            WatchList.Add(stock);
+        }
+
+        // Set active stocks
+        ActiveStock1 = TopMovers.FirstOrDefault();
+        ActiveStock2 = TopMovers.Skip(1).FirstOrDefault();
+        ActiveStock3 = TopMovers.Skip(2).FirstOrDefault();
+
+        await Task.CompletedTask;
+    }
+
+    public override void Dispose()
+    {
+        _hotkeyService.HotkeyPressed -= OnHotkeyPressed;
+        base.Dispose();
+    }
+}

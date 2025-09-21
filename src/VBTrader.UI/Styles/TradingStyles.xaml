@@ -1,0 +1,167 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:VBTrader.UI.Converters">
+
+    <!-- Converters -->
+    <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <converters:BoolNegationConverter x:Key="BoolNegationConverter" />
+    <converters:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    <converters:BoolToStringConverter x:Key="BoolToStringConverter" />
+    <converters:NumberToColorConverter x:Key="NumberToColorConverter" />
+    <converters:NewsRatingToColorConverter x:Key="NewsRatingToColorConverter" />
+    <converters:NewsRatingToTextConverter x:Key="NewsRatingToTextConverter" />
+    <converters:VolumeToFormattedStringConverter x:Key="VolumeToFormattedStringConverter" />
+    <converters:CurrencyConverter x:Key="CurrencyConverter" />
+    <converters:CurrencySignedConverter x:Key="CurrencySignedConverter" />
+    <converters:PercentageConverter x:Key="PercentageConverter" />
+    <converters:PercentageSignedConverter x:Key="PercentageSignedConverter" />
+    <converters:ScoreConverter x:Key="ScoreConverter" />
+    <converters:DateTimeConverter x:Key="DateTimeConverter" />
+    <converters:BoolToStatusColorConverter x:Key="BoolToStatusColorConverter" />
+
+    <!-- Button Styles -->
+    <Style x:Key="AccentButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource ButtonBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource TradingForeground}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}"
+                            CornerRadius="{TemplateBinding CornerRadius}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}">
+                        <ContentPresenter HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          Padding="{TemplateBinding Padding}" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="BorderElement"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#FF106EBE" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <ColorAnimation Storyboard.TargetName="BorderElement"
+                                                        Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                        To="#FF005A9E" Duration="0:0:0.1" />
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="DefaultButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="{StaticResource TradingCardBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource TradingForeground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TradingBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="16,12" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+    </Style>
+
+    <Style x:Key="TextButtonStyle" TargetType="Button">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource TradingBlue}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="8,4" />
+        <Setter Property="FontSize" Value="12" />
+    </Style>
+
+    <!-- Trading Data Grid Style -->
+    <Style x:Key="TradingDataGridStyle" TargetType="DataGrid">
+        <Setter Property="Background" Value="{StaticResource TradingPanelBackground}" />
+        <Setter Property="Foreground" Value="{StaticResource TradingForeground}" />
+        <Setter Property="HeadersVisibility" Value="Column" />
+        <Setter Property="GridLinesVisibility" Value="Horizontal" />
+        <Setter Property="HorizontalGridLinesBrush" Value="{StaticResource TradingBorder}" />
+        <Setter Property="AlternatingRowBackground" Value="{StaticResource DataGridAlternate}" />
+        <Setter Property="RowBackground" Value="{StaticResource TradingPanelBackground}" />
+        <Setter Property="CanUserAddRows" Value="False" />
+        <Setter Property="CanUserDeleteRows" Value="False" />
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="AutoGenerateColumns" Value="False" />
+        <Setter Property="SelectionMode" Value="Single" />
+    </Style>
+
+    <!-- Trading Panel Style -->
+    <Style x:Key="TradingPanelStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource TradingPanelBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TradingBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="8" />
+    </Style>
+
+    <!-- Trading Card Style -->
+    <Style x:Key="TradingCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource TradingCardBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TradingBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12" />
+    </Style>
+
+    <!-- Stock Price Text Styles -->
+    <Style x:Key="StockPriceStyle" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="Consolas" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style x:Key="StockSymbolStyle" TargetType="TextBlock">
+        <Setter Property="FontWeight" Value="Bold" />
+        <Setter Property="FontSize" Value="16" />
+        <Setter Property="Foreground" Value="{StaticResource TradingForeground}" />
+    </Style>
+
+    <!-- News Rating Styles -->
+    <Style x:Key="NewsRatingStyle" TargetType="Border">
+        <Setter Property="CornerRadius" Value="3" />
+        <Setter Property="Padding" Value="6,2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <!-- Chart Container Style -->
+    <Style x:Key="ChartContainerStyle" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource ChartBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource TradingBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <!-- Trading Button Styles -->
+    <Style x:Key="BuyButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource TradingGreen}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <Style x:Key="SellButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="{StaticResource TradingRed}" />
+        <Setter Property="Foreground" Value="White" />
+        <Setter Property="FontWeight" Value="Bold" />
+    </Style>
+
+    <!-- Status Indicator Styles -->
+    <Style x:Key="StatusIndicatorStyle" TargetType="Ellipse">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+</ResourceDictionary>

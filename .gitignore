@@ -1,0 +1,67 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.vscode/
+
+# Claude Code specific files
+.claude/
+.claude.json
+.claude.json.backup
+
+# Logs and debugging
+log/
+logs/
+*.log
+*.txt
+*.json
+
+# Test directories (if they're temporary/generated)
+test/
+tests/
+Test/
+Tests/
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment and secrets
+appsettings.Development.json
+appsettings.Local.json
+.env
+*.env
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# API documentation downloads
+API-XREF/
+api-docs/
+screenshots/
+pictures/
+
+# Temporary and cache directories
+temp/
+tmp/
+cache/
+.cache/
+node_modules/

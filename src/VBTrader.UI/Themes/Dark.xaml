@@ -1,0 +1,72 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Dark Theme Colors for Trading Application -->
+
+    <!-- Background Colors -->
+    <SolidColorBrush x:Key="TradingDarkBackground" Color="#FF1E1E1E" />
+    <SolidColorBrush x:Key="TradingPanelBackground" Color="#FF2D2D30" />
+    <SolidColorBrush x:Key="TradingCardBackground" Color="#FF3E3E42" />
+    <SolidColorBrush x:Key="TradingHoverBackground" Color="#FF4C4C50" />
+
+    <!-- Text Colors -->
+    <SolidColorBrush x:Key="TradingForeground" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="TradingSecondaryForeground" Color="#FFB0B0B0" />
+    <SolidColorBrush x:Key="TradingMutedForeground" Color="#FF808080" />
+
+    <!-- Trading Colors -->
+    <SolidColorBrush x:Key="TradingGreen" Color="#FF00C851" />
+    <SolidColorBrush x:Key="TradingRed" Color="#FFFF4444" />
+    <SolidColorBrush x:Key="TradingBlue" Color="#FF2196F3" />
+    <SolidColorBrush x:Key="TradingOrange" Color="#FFFF9800" />
+    <SolidColorBrush x:Key="TradingYellow" Color="#FFFFC107" />
+
+    <!-- Status Colors -->
+    <SolidColorBrush x:Key="TradingSuccess" Color="#FF4CAF50" />
+    <SolidColorBrush x:Key="TradingWarning" Color="#FFFF9800" />
+    <SolidColorBrush x:Key="TradingError" Color="#FFF44336" />
+    <SolidColorBrush x:Key="TradingInfo" Color="#FF2196F3" />
+
+    <!-- Border Colors -->
+    <SolidColorBrush x:Key="TradingBorder" Color="#FF404040" />
+    <SolidColorBrush x:Key="TradingAccentBorder" Color="#FF0078D4" />
+
+    <!-- Chart Colors -->
+    <SolidColorBrush x:Key="ChartBackground" Color="#FF1C1C1C" />
+    <SolidColorBrush x:Key="ChartGridLines" Color="#FF404040" />
+    <SolidColorBrush x:Key="ChartAxis" Color="#FF808080" />
+
+    <!-- Candlestick Colors -->
+    <SolidColorBrush x:Key="CandlestickBullish" Color="#FF00C851" />
+    <SolidColorBrush x:Key="CandlestickBearish" Color="#FFFF4444" />
+    <SolidColorBrush x:Key="CandlestickWick" Color="#FFFFFF" />
+
+    <!-- Volume Colors -->
+    <SolidColorBrush x:Key="VolumeUp" Color="#4400C851" />
+    <SolidColorBrush x:Key="VolumeDown" Color="#44FF4444" />
+
+    <!-- MACD Colors -->
+    <SolidColorBrush x:Key="MACDLine" Color="#FF2196F3" />
+    <SolidColorBrush x:Key="MACDSignal" Color="#FFFF9800" />
+    <SolidColorBrush x:Key="MACDHistogram" Color="#FF9C27B0" />
+
+    <!-- News Rating Colors -->
+    <SolidColorBrush x:Key="NewsAmazing" Color="#FF4CAF50" />
+    <SolidColorBrush x:Key="NewsGreat" Color="#FF8BC34A" />
+    <SolidColorBrush x:Key="NewsGood" Color="#FFFFC107" />
+    <SolidColorBrush x:Key="NewsOK" Color="#FFFF9800" />
+    <SolidColorBrush x:Key="NewsBad" Color="#FFF44336" />
+
+    <!-- Button Styles -->
+    <SolidColorBrush x:Key="ButtonBackground" Color="#FF0078D4" />
+    <SolidColorBrush x:Key="ButtonHover" Color="#FF106EBE" />
+    <SolidColorBrush x:Key="ButtonPressed" Color="#FF005A9E" />
+
+    <!-- Data Grid Colors -->
+    <SolidColorBrush x:Key="DataGridHeader" Color="#FF2D2D30" />
+    <SolidColorBrush x:Key="DataGridAlternate" Color="#FF252526" />
+    <SolidColorBrush x:Key="DataGridSelected" Color="#FF0078D4" />
+    <SolidColorBrush x:Key="DataGridHover" Color="#FF3E3E42" />
+
+</ResourceDictionary>

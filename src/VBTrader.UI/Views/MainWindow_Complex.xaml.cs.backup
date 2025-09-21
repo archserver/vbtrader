@@ -1,0 +1,26 @@
+using Microsoft.UI.Xaml;
+using VBTrader.UI.ViewModels;
+
+namespace VBTrader.UI.Views;
+
+public sealed partial class MainWindow : Window
+{
+    public MainViewModel ViewModel { get; }
+
+    public MainWindow(MainViewModel viewModel)
+    {
+        ViewModel = viewModel;
+        this.InitializeComponent();
+
+        // Set window properties
+        Title = "VBTrader Pro - Professional Trading Platform";
+        ExtendsContentIntoTitleBar = true;
+
+        // Maximize window for trading
+        var displayArea = Microsoft.UI.Windowing.DisplayArea.Primary;
+        AppWindow.MoveAndResize(new Windows.Graphics.RectInt32(0, 0, displayArea.WorkArea.Width, displayArea.WorkArea.Height));
+
+        // Set minimum size
+        AppWindow.Resize(new Windows.Graphics.SizeInt32(1200, 800));
+    }
+}

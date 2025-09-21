@@ -1,0 +1,15 @@
+<Application
+    x:Class="VBTrader.UI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Load custom themes and styles -->
+                <ResourceDictionary Source="Themes/Dark.xaml" />
+                <ResourceDictionary Source="Styles/TradingStyles.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
